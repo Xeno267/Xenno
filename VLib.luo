@@ -1,0 +1,14 @@
+-- VLib (Custom Dark GUI like Ugly GUI) -- Author: Xeno
+
+local VLib = {}
+
+local Players = game:GetService("Players") local player = Players.LocalPlayer local mouse = player:GetMouse() local UIS = game:GetService("UserInputService")
+
+-- GUI Base local ScreenGui = Instance.new("ScreenGui") ScreenGui.Name = "VLibUI" ScreenGui.ResetOnSpawn = false ScreenGui.Parent = game.CoreGui
+
+-- Main Frame local mainFrame = Instance.new("Frame") mainFrame.Name = "MainFrame" mainFrame.Size = UDim2.new(0, 500, 0, 300) mainFrame.Position = UDim2.new(0.5, -250, 0.5, -150) mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25) mainFrame.BorderSizePixel = 0 mainFrame.AnchorPoint = Vector2.new(0.5, 0.5) mainFrame.Active = true mainFrame.Draggable = true mainFrame.Parent = ScreenGui
+
+-- Title Bar local title = Instance.new("TextLabel") title.Size = UDim2.new(1, 0, 0, 30) title.BackgroundTransparency = 1 title.Text = "Virel Xeno Hub" title.Font = Enum.Font.GothamBold title.TextSize = 18 title.TextColor3 = Color3.fromRGB(255, 255, 255) title.Parent = mainFrame
+
+-- Toggle Button local toggleBtn = Instance.new("TextButton") toggleBtn.Name = "ToggleButton" toggleBtn.Size = UDim2.new(0, 60, 0, 30) toggleBtn.Position = UDim2.new(1, -70, 0, 5) toggleBtn.Text = "Xeno" toggleBtn.Font = Enum.Font.GothamBold toggleBtn.TextSize = 14 toggleBtn.BackgroundColor3 = Color3.fromRGB(
+
