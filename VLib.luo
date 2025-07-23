@@ -1,162 +1,84 @@
--- Virel Xeno Hub Full GUI Script
+local VLib = {}
+local TweenService = game:GetService("TweenService")
 
--- Load VLib UI Library
-local VLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Youifpg/Steal-a-Brainrot-op/main/VLib.lua"))()
+function VLib:Window(title, subtitle, color, key)
+    local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+    local Frame = Instance.new("Frame", ScreenGui)
+    Frame.Size = UDim2.new(0, 400, 0, 300)
+    Frame.Position = UDim2.new(0.5, -200, 0.5, -150)
+    Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    Frame.BorderSizePixel = 0
+    Frame.Active = true
+    Frame.Draggable = true
 
--- Create Main Window
-local win = VLib:Window("Virel Xeno Hub", "Steal a Brainrot", Color3.fromRGB(34, 34, 34), Enum.KeyCode.RightControl)
+    local UICorner = Instance.new("UICorner", Frame)
+    UICorner.CornerRadius = UDim.new(0, 8)
 
--- Tabs
-local main = win:Tab("Main")
-local visual = win:Tab("Visual")
-local misc = win:Tab("Misc")
+    local Title = Instance.new("TextLabel", Frame)
+    Title.Size = UDim2.new(1, 0, 0, 40)
+    Title.BackgroundTransparency = 1
+    Title.Text = title .. " - " .. subtitle
+    Title.TextColor3 = color
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 20
 
--- States
-local toggles = {}
+    local Tabs = {}
 
--- Speed
-main:Toggle("Speed", false, function(v)
-    toggles.speed = v
-    local hum = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
-    while toggles.speed and hum do
-        hum.WalkSpeed = 32
-        task.wait()
-    end
-    if hum then hum.WalkSpeed = 16 end
-end)
+    function Tabs:Tab(name)
+        local tabBtn = Instance.new("TextButton", Frame)
+        tabBtn.Text = name
+        tabBtn.Size = UDim2.new(0, 100, 0, 30)
+        tabBtn.Position = UDim2.new(0, (#Frame:GetChildren()-2)*105, 0, 40)
+        tabBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        tabBtn.TextColor3 = Color3.new(1,1,1)
+        tabBtn.Font = Enum.Font.Gotham
+        tabBtn.TextSize = 14
 
--- Jump
-main:Toggle("Jump", false, function(v)
-    toggles.jump = v
-    local hum = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
-    while toggles.jump and hum do
-        hum.JumpPower = 80
-        task.wait()
-    end
-    if hum then hum.JumpPower = 50 end
-end)
+        local container = Instance.new("Frame", Frame)
+        container.Position = UDim2.new(0, 0, 0, 80)
+        container.Size = UDim2.new(1, 0, 1, -80)
+        container.BackgroundTransparency = 1
+        container.Visible = false
 
--- Fly (WASD control)
-main:Toggle("Fly", false, function(v)
-    toggles.fly = v
-    local player = game.Players.LocalPlayer
-    local char = player.Character or player.CharacterAdded:Wait()
-    local hrp = char:WaitForChild("HumanoidRootPart")
-    local bv = Instance.new("BodyVelocity", hrp)
-    bv.MaxForce = Vector3.new(1, 1, 1) * 1e5
-    local UIS = game:GetService("UserInputService")
+        local currentTab = {}
 
-    while toggles.fly do
-        local dir = Vector3.new()
-        if UIS:IsKeyDown(Enum.KeyCode.W) then dir = dir + workspace.CurrentCamera.CFrame.LookVector end
-        if UIS:IsKeyDown(Enum.KeyCode.S) then dir = dir - workspace.CurrentCamera.CFrame.LookVector end
-        if UIS:IsKeyDown(Enum.KeyCode.A) then dir = dir - workspace.CurrentCamera.CFrame.RightVector end
-        if UIS:IsKeyDown(Enum.KeyCode.D) then dir = dir + workspace.CurrentCamera.CFrame.RightVector end
-        bv.Velocity = dir.Unit * 50
-        task.wait()
-    end
-    bv:Destroy()
-end)
+        function currentTab:Toggle(label, default, callback)
+            local toggle = Instance.new("TextButton", container)
+            toggle.Size = UDim2.new(0, 150, 0, 30)
+            toggle.Position = UDim2.new(0, 10, 0, (#container:GetChildren()-1)*35)
+            toggle.BackgroundColor3 = default and Color3.fromRGB(40,180,40) or Color3.fromRGB(50, 50, 50)
+            toggle.TextColor3 = Color3.new(1,1,1)
+            toggle.Text = label
+            toggle.Font = Enum.Font.Gotham
+            toggle.TextSize = 14
 
--- Player ESP
-visual:Toggle("Player ESP", false, function(v)
-    toggles.esp = v
-    local function createESP(plr)
-        if plr == game.Players.LocalPlayer then return end
-        local box = Drawing.new("Text")
-        box.Text = plr.Name
-        box.Size = 14
-        box.Center = true
-        box.Outline = true
-        box.Color = Color3.new(1, 1, 1)
-        box.Visible = true
-
-        game:GetService("RunService").RenderStepped:Connect(function()
-            if toggles.esp and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                local pos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(plr.Character.HumanoidRootPart.Position)
-                box.Position = Vector2.new(pos.X, pos.Y)
-                box.Visible = onScreen
-            else
-                box.Visible = false
-            end
-        end)
-    end
-
-    for _, p in pairs(game.Players:GetPlayers()) do
-        createESP(p)
-    end
-    game.Players.PlayerAdded:Connect(createESP)
-end)
-
--- Brainrot ESP
-visual:Toggle("Brainrot ESP", false, function(v)
-    toggles.brainrotESP = v
-    while toggles.brainrotESP do
-        for _, obj in pairs(workspace:GetDescendants()) do
-            if obj:IsA("BasePart") and obj.Name:lower():find("brainrot") then
-                local highlight = Instance.new("Highlight", obj)
-                highlight.Adornee = obj
-                highlight.FillColor = Color3.fromRGB(255, 0, 0)
-                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-                highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                task.wait(1)
-                highlight:Destroy()
-            end
+            local on = default
+            toggle.MouseButton1Click:Connect(function()
+                on = not on
+                toggle.BackgroundColor3 = on and Color3.fromRGB(40,180,40) or Color3.fromRGB(50, 50, 50)
+                callback(on)
+            end)
         end
-        task.wait(2)
-    end
-end)
 
--- Brainrot Secret 2 ESP
-visual:Toggle("Brainrot Secret 2 ESP", false, function(v)
-    toggles.brainrot2 = v
-    while toggles.brainrot2 do
-        for _, obj in pairs(workspace:GetDescendants()) do
-            if obj:IsA("BasePart") and obj.Name:lower():find("secret2") then
-                local hl = Instance.new("Highlight", obj)
-                hl.FillColor = Color3.fromRGB(0, 255, 0)
-                hl.OutlineColor = Color3.fromRGB(255, 255, 255)
-                hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                task.wait(1)
-                hl:Destroy()
-            end
-        end
-        task.wait(2)
-    end
-end)
-
--- Base Lock Time ESP
-visual:Toggle("Base Lock ESP", false, function(v)
-    toggles.baseESP = v
-    while toggles.baseESP do
-        for _, obj in pairs(workspace:GetDescendants()) do
-            if obj:IsA("Model") and obj.Name:find("'s Base") then
-                local surface = obj:FindFirstChildWhichIsA("SurfaceGui", true)
-                if surface then
-                    local text = surface:FindFirstChildWhichIsA("TextLabel")
-                    if text then
-                        text.Text = "UNLOCKED"
-                        if obj:FindFirstChild("LockTime") then
-                            local timer = obj.LockTime.Value
-                            text.Text = tostring(math.floor(timer)) .. "s"
-                        end
-                    end
+        tabBtn.MouseButton1Click:Connect(function()
+            for _, child in pairs(Frame:GetChildren()) do
+                if child:IsA("Frame") and child ~= container then
+                    child.Visible = false
                 end
             end
+            container.Visible = true
+        end)
+
+        return currentTab
+    end
+
+    game:GetService("UserInputService").InputBegan:Connect(function(input)
+        if input.KeyCode == key then
+            Frame.Visible = not Frame.Visible
         end
-        task.wait(1)
-    end
-end)
+    end)
 
--- TP UP
-misc:Button("TP UP", function()
-    local char = game.Players.LocalPlayer.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        char.HumanoidRootPart.CFrame = char.HumanoidRootPart.CFrame + Vector3.new(0, 25, 0)
-    end
-end)
+    return Tabs
+end
 
--- GUI Toggle
-misc:Button("Xeno", function()
-    win:Toggle()
-end)
+return VLib
