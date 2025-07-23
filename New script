@@ -1,162 +1,162 @@
--- Virel Xeno Hub | Steal a Brainrot Full GUI
+-- Virel Xeno Hub Full GUI Script
 
--- 👑 Load GUI library
-local VLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Xeno267/Virelxeno/main/VLib.lua"))()
+-- Load VLib UI Library
+local VLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Youifpg/Steal-a-Brainrot-op/main/VLib.lua"))()
 
--- Services
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UIS = game:GetService("UserInputService")
-local Workspace = game:GetService("Workspace")
+-- Create Main Window
+local win = VLib:Window("Virel Xeno Hub", "Steal a Brainrot", Color3.fromRGB(34, 34, 34), Enum.KeyCode.RightControl)
 
--- Settings
-local SPEED = 50
-local DEFAULT_JUMP = 50
-local BOOSTED_JUMP = 110
-local HIT_DIST = 50
-
--- State flags
-local state = {
-  speed=false, jump=false, fly=false,
-  esp_player=false, esp_brain=false, esp_brain2=false,
-  esp_lock=false, esp_backpack=false,
-  tp_bypass=false, hit_fly=false, disable_trap=false
-}
-
--- Create GUI
-local win = VLib:Window("Virel Xeno Hub")
+-- Tabs
 local main = win:Tab("Main")
 local visual = win:Tab("Visual")
 local misc = win:Tab("Misc")
 
--- Main toggles
-main:Toggle("Speed", false, function(v) state.speed=v end)
-main:Toggle("Jump", false, function(v) state.jump=v end)
-main:Toggle("Fly", false, function(v) state.fly=v end)
-main:Toggle("TP Bypass", false, function(v) state.tp_bypass=v end)
-main:Toggle("Hit From Distance", false, function(v) state.hit_fly=v end)
-main:Toggle("Disable Trap", false, function(v) state.disable_trap=v end)
+-- States
+local toggles = {}
 
--- Visual toggles
-visual:Toggle("Player ESP", false, function(v) state.esp_player=v end)
-visual:Toggle("Brainrot ESP", false, function(v) state.esp_brain=v end)
-visual:Toggle("Brainrot Secret2 ESP", false, function(v) state.esp_brain2=v end)
-visual:Toggle("Base Lock ESP", false, function(v) state.esp_lock=v end)
-visual:Toggle("Backpack ESP", false, function(v) state.esp_backpack=v end)
-
--- Misc toggle
-misc:Toggle("Hide GUI", false, function(v) win.Visible = not v end)
-
--- Utility for creating ESP
-local function makeESP(obj, name, color)
-  local b = Instance.new("BillboardGui", obj)
-  b.Size = UDim2.new(0,100,0,30); b.AlwaysOnTop=true
-  local l = Instance.new("TextLabel", b)
-  l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1
-  l.TextColor3=color; l.TextScaled=true; l.Text=name
-end
-
--- Core logic
-RunService.RenderStepped:Connect(function()
-  local plr = Players.LocalPlayer
-  local char = plr.Character; local hum = char and char:FindFirstChild("Humanoid")
-  local hrp = char and char:FindFirstChild("HumanoidRootPart")
-
-  -- Movement
-  if hum then
-    hum.WalkSpeed = state.speed and SPEED or 16
-    if state.jump then hum.JumpPower = BOOSTED_JUMP else hum.JumpPower = DEFAULT_JUMP end
-  end
-
-  -- Fly (WASD + Space + Shift)
-  if state.fly and hrp then
-    local dir = Vector3.zero
-    if UIS:IsKeyDown(Enum.KeyCode.W) then dir+= workspace.CurrentCamera.CFrame.LookVector end
-    if UIS:IsKeyDown(Enum.KeyCode.S) then dir-= workspace.CurrentCamera.CFrame.LookVector end
-    if UIS:IsKeyDown(Enum.KeyCode.A) then dir-= workspace.CurrentCamera.CFrame.RightVector end
-    if UIS:IsKeyDown(Enum.KeyCode.D) then dir+= workspace.CurrentCamera.CFrame.RightVector end
-    if UIS:IsKeyDown(Enum.KeyCode.Space) then dir+= Vector3.new(0,1,0) end
-    if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then dir-= Vector3.new(0,1,0) end
-    hrp.Velocity = dir.Unit * SPEED
-  end
-
-  -- ESP updates
-  for _, pl in ipairs(Players:GetPlayers()) do
-    if pl~=plr and pl.Character and pl.Character:FindFirstChild("Head") then
-      local head = pl.Character.Head
-      if state.esp_player and not head:FindFirstChild("ESPPlayer") then
-        local tag = Instance.new("BillboardGui", head); tag.Name="ESPPlayer"
-        tag.Size=UDim2.new(0,120,0,40); tag.AlwaysOnTop=true
-        local lab=Instance.new("TextLabel",tag); lab.Size=UDim2.new(1,0,1,0); lab.BackgroundTransparency=1
-        lab.Text=pl.Name; lab.TextColor3=Color3.new(0,1,0); lab.TextScaled=true
-      elseif not state.esp_player and head:FindFirstChild("ESPPlayer") then
-        head:FindFirstChild("ESPPlayer"):Destroy()
-      end
+-- Speed
+main:Toggle("Speed", false, function(v)
+    toggles.speed = v
+    local hum = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+    while toggles.speed and hum do
+        hum.WalkSpeed = 32
+        task.wait()
     end
-  end
+    if hum then hum.WalkSpeed = 16 end
+end)
 
-  for _, obj in ipairs(Workspace:GetDescendants()) do
-    if obj:IsA("BasePart") then
-      -- Brainrot ESP
-      if state.esp_brain and obj.Name:lower():find("brainrot") and not obj:FindFirstChild("ESPBrain") then
-        makeESP(obj, "Brainrot", Color3.fromRGB(0,255,255)) obj:FindFirstChildWhichIsA("BillboardGui").Name="ESPBrain"
-      elseif not state.esp_brain and obj:FindFirstChild("ESPBrain") then obj:FindFirstChild("ESPBrain"):Destroy() end
-
-      -- Secret2 ESP
-      if state.esp_brain2 and obj.Name:lower():find("secret2") and not obj:FindFirstChild("ESPBrain2") then
-        makeESP(obj, "Secret 2", Color3.fromRGB(255,0,255)) obj:FindFirstChildWhichIsA("BillboardGui").Name="ESPBrain2"
-      elseif not state.esp_brain2 and obj:FindFirstChild("ESPBrain2") then obj:FindFirstChild("ESPBrain2"):Destroy() end
+-- Jump
+main:Toggle("Jump", false, function(v)
+    toggles.jump = v
+    local hum = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+    while toggles.jump and hum do
+        hum.JumpPower = 80
+        task.wait()
     end
-  end
+    if hum then hum.JumpPower = 50 end
+end)
 
-  -- Base Lock ESP
-  for _, base in ipairs(Workspace:GetChildren()) do
-    if base:IsA("Model") and base.Name:find("'s Base") then
-      local lock = base:FindFirstChild("Lock")
-      if lock then
-        if state.esp_lock and not lock:FindFirstChild("ESPLock") then
-          makeESP(lock, base.Name, Color3.fromRGB(255,255,0)); lock:FindFirstChildWhichIsA("BillboardGui").Name="ESPLock"
-        elseif not state.esp_lock and lock:FindFirstChild("ESPLock") then
-          lock:FindFirstChild("ESPLock"):Destroy()
+-- Fly (WASD control)
+main:Toggle("Fly", false, function(v)
+    toggles.fly = v
+    local player = game.Players.LocalPlayer
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    local bv = Instance.new("BodyVelocity", hrp)
+    bv.MaxForce = Vector3.new(1, 1, 1) * 1e5
+    local UIS = game:GetService("UserInputService")
+
+    while toggles.fly do
+        local dir = Vector3.new()
+        if UIS:IsKeyDown(Enum.KeyCode.W) then dir = dir + workspace.CurrentCamera.CFrame.LookVector end
+        if UIS:IsKeyDown(Enum.KeyCode.S) then dir = dir - workspace.CurrentCamera.CFrame.LookVector end
+        if UIS:IsKeyDown(Enum.KeyCode.A) then dir = dir - workspace.CurrentCamera.CFrame.RightVector end
+        if UIS:IsKeyDown(Enum.KeyCode.D) then dir = dir + workspace.CurrentCamera.CFrame.RightVector end
+        bv.Velocity = dir.Unit * 50
+        task.wait()
+    end
+    bv:Destroy()
+end)
+
+-- Player ESP
+visual:Toggle("Player ESP", false, function(v)
+    toggles.esp = v
+    local function createESP(plr)
+        if plr == game.Players.LocalPlayer then return end
+        local box = Drawing.new("Text")
+        box.Text = plr.Name
+        box.Size = 14
+        box.Center = true
+        box.Outline = true
+        box.Color = Color3.new(1, 1, 1)
+        box.Visible = true
+
+        game:GetService("RunService").RenderStepped:Connect(function()
+            if toggles.esp and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                local pos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(plr.Character.HumanoidRootPart.Position)
+                box.Position = Vector2.new(pos.X, pos.Y)
+                box.Visible = onScreen
+            else
+                box.Visible = false
+            end
+        end)
+    end
+
+    for _, p in pairs(game.Players:GetPlayers()) do
+        createESP(p)
+    end
+    game.Players.PlayerAdded:Connect(createESP)
+end)
+
+-- Brainrot ESP
+visual:Toggle("Brainrot ESP", false, function(v)
+    toggles.brainrotESP = v
+    while toggles.brainrotESP do
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("BasePart") and obj.Name:lower():find("brainrot") then
+                local highlight = Instance.new("Highlight", obj)
+                highlight.Adornee = obj
+                highlight.FillColor = Color3.fromRGB(255, 0, 0)
+                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                task.wait(1)
+                highlight:Destroy()
+            end
         end
-      end
+        task.wait(2)
     end
-  end
+end)
 
-  -- Backpack ESP
-  if state.esp_backpack then
-    for _, pl in ipairs(Players:GetPlayers()) do
-      local bp = pl.Backpack
-      if bp and #bp:GetChildren()>0 and pl.Character and pl.Character:FindFirstChild("HumanoidRootPart") then
-        local root = pl.Character.HumanoidRootPart
-        if not root:FindFirstChild("ESPBag") then
-          makeESP(root, "Backpack", Color3.fromRGB(0,0,255)); root:FindFirstChildWhichIsA("BillboardGui").Name="ESPBag"
+-- Brainrot Secret 2 ESP
+visual:Toggle("Brainrot Secret 2 ESP", false, function(v)
+    toggles.brainrot2 = v
+    while toggles.brainrot2 do
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("BasePart") and obj.Name:lower():find("secret2") then
+                local hl = Instance.new("Highlight", obj)
+                hl.FillColor = Color3.fromRGB(0, 255, 0)
+                hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+                hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                task.wait(1)
+                hl:Destroy()
+            end
         end
-      end
+        task.wait(2)
     end
-  else
-    for _, gui in ipairs(Workspace:GetDescendants()) do
-      if gui:IsA("BillboardGui") and gui.Name=="ESPBag" then gui:Destroy() end
-    end
-  end
+end)
 
-  -- TP Bypass and Hit TP
-  if state.tp_bypass or state.hit_fly then
-    for _, pl in ipairs(Players:GetPlayers()) do
-      if pl~=plr and pl.Character and pl.Character:FindFirstChild("HumanoidRootPart") then
-        local target = pl.Character.HumanoidRootPart
-        if state.tp_bypass then character:SetPrimaryPartCFrame(target.CFrame + Vector3.new(0,0,3)) end
-        if state.hit_fly then target.CFrame = hrp.CFrame end
-      end
+-- Base Lock Time ESP
+visual:Toggle("Base Lock ESP", false, function(v)
+    toggles.baseESP = v
+    while toggles.baseESP do
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("Model") and obj.Name:find("'s Base") then
+                local surface = obj:FindFirstChildWhichIsA("SurfaceGui", true)
+                if surface then
+                    local text = surface:FindFirstChildWhichIsA("TextLabel")
+                    if text then
+                        text.Text = "UNLOCKED"
+                        if obj:FindFirstChild("LockTime") then
+                            local timer = obj.LockTime.Value
+                            text.Text = tostring(math.floor(timer)) .. "s"
+                        end
+                    end
+                end
+            end
+        end
+        task.wait(1)
     end
-  end
+end)
 
-  -- Trap disable
-  if state.disable_trap then
-    for _, obj in ipairs(Workspace:GetDescendants()) do
-      if obj.Name:lower():find("trap") and obj:IsA("BasePart") then
-        obj.CanCollide = false; obj.Transparency = 0.5
-      end
+-- TP UP
+misc:Button("TP UP", function()
+    local char = game.Players.LocalPlayer.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        char.HumanoidRootPart.CFrame = char.HumanoidRootPart.CFrame + Vector3.new(0, 25, 0)
     end
-  end
+end)
+
+-- GUI Toggle
+misc:Button("Xeno", function()
+    win:Toggle()
 end)
